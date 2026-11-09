@@ -1,0 +1,851 @@
+/* ============================================================
+   NEON RUSH — standalone styles
+   Scoped entirely under #game-root so it can coexist with
+   anything else on the page.
+   ============================================================ */
+
+/* ---- global reset ---- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: #04070e;
+}
+
+/* ---- font variables (system-font fallbacks replace Geist) ---- */
+:root {
+  --font-geist-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-geist-mono: ui-monospace, "SF Mono", Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+}
+
+/* ============================================================
+   NEON RUSH — game styles (all scoped under #game-root)
+   ============================================================ */
+
+#game-root {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  overflow: hidden;
+  background: #04070e;
+  color: #e6edf7;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: none;
+}
+
+#game-root .ng-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  touch-action: none;
+}
+
+#game-root .ng-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 40%, transparent 55%, rgba(2, 5, 10, 0.55) 100%),
+    linear-gradient(
+      to bottom,
+      rgba(2, 5, 10, 0.35),
+      transparent 18%,
+      transparent 82%,
+      rgba(2, 5, 10, 0.45)
+    );
+}
+
+#game-root .ng-hud {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+#game-root .ng-glass {
+  background: rgba(12, 19, 34, 0.55);
+  border: 1px solid rgba(148, 180, 214, 0.16);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+
+#game-root .ng-num {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* ---------- score panel (top-left) ---------- */
+#game-root .ng-score-panel {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 14px);
+  left: calc(env(safe-area-inset-left, 0px) + 16px);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 16px 12px;
+  border-radius: 16px;
+  min-width: 128px;
+}
+#game-root .ng-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  color: rgba(148, 180, 214, 0.75);
+}
+#game-root .ng-score {
+  font-size: clamp(24px, 4vw, 32px);
+  font-weight: 700;
+  line-height: 1.05;
+  color: #e9fbf7;
+  text-shadow: 0 0 18px rgba(45, 212, 191, 0.35);
+}
+#game-root .ng-best-row {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: rgba(148, 180, 214, 0.65);
+}
+#game-root .ng-best-row b {
+  font-size: 11px;
+  color: #9de8da;
+  margin-left: 4px;
+}
+
+/* ---------- right column: speed + buttons ---------- */
+#game-root .ng-right-col {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 14px);
+  right: calc(env(safe-area-inset-right, 0px) + 16px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+#game-root .ng-speed-panel {
+  padding: 8px 14px 10px;
+  border-radius: 16px;
+  min-width: 108px;
+}
+#game-root .ng-speed-row {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  justify-content: flex-end;
+}
+#game-root .ng-speed {
+  font-size: clamp(20px, 3vw, 26px);
+  font-weight: 700;
+  color: #f3e8ff;
+  text-shadow: 0 0 16px rgba(244, 114, 182, 0.35);
+}
+#game-root .ng-unit {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: rgba(148, 180, 214, 0.7);
+}
+#game-root .ng-speed-bar {
+  margin-top: 6px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(148, 180, 214, 0.15);
+  overflow: hidden;
+}
+#game-root .ng-speed-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #5eead4, #f472b6);
+  transform-origin: left center;
+  transform: scaleX(0.05);
+  transition: transform 0.15s linear;
+}
+#game-root .ng-speed-bar i.braking {
+  background: linear-gradient(90deg, #fb7185, #fda4af);
+  box-shadow: 0 0 10px rgba(251, 113, 133, 0.5);
+}
+#game-root .ng-btns {
+  display: flex;
+  gap: 8px;
+}
+#game-root .ng-icon-btn {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  color: rgba(214, 232, 247, 0.85);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: transform 0.15s ease, border-color 0.2s ease, color 0.2s ease;
+}
+#game-root .ng-icon-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(94, 234, 212, 0.45);
+  color: #aef7ec;
+}
+#game-root .ng-icon-btn:active {
+  transform: scale(0.94);
+}
+#game-root .ng-mute-btn .ic-off {
+  display: none;
+}
+#game-root .ng-mute-btn.muted .ic-on {
+  display: none;
+}
+#game-root .ng-mute-btn.muted .ic-off {
+  display: block;
+}
+
+/* ---------- boost bar (bottom-center) ---------- */
+#game-root .ng-boost-wrap {
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: min(300px, 46vw);
+}
+#game-root .ng-boost-bar {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(148, 180, 214, 0.14);
+  border: 1px solid rgba(148, 180, 214, 0.18);
+  overflow: hidden;
+}
+#game-root .ng-boost-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #14b8a6, #5eead4);
+  box-shadow: 0 0 12px rgba(45, 212, 191, 0.55);
+  transform-origin: left center;
+  transition: transform 0.1s linear;
+}
+#game-root .ng-boost-bar i.low {
+  background: linear-gradient(90deg, #78716c, #a8a29e);
+  box-shadow: none;
+}
+#game-root .ng-boost-wrap.charged .ng-boost-bar i {
+  background: linear-gradient(90deg, #2dd4bf, #99f6e4, #5eead4);
+  box-shadow: 0 0 16px rgba(94, 234, 212, 0.9);
+}
+#game-root .ng-boost-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  color: rgba(148, 180, 214, 0.6);
+}
+#game-root .ng-boost-wrap.charged .ng-boost-label {
+  color: #99f6e4;
+  text-shadow: 0 0 10px rgba(94, 234, 212, 0.8);
+}
+
+/* ---------- touch pads: BOOST / BRAKE / DRIFT ---------- */
+#game-root .ng-pads {
+  position: absolute;
+  right: calc(env(safe-area-inset-right, 0px) + 14px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+@media (pointer: coarse) {
+  #game-root .ng-pads {
+    display: flex;
+  }
+}
+#game-root .ng-pad {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  width: 66px;
+  height: 66px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(94, 234, 212, 0.55);
+  background: rgba(13, 26, 34, 0.6);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: #99f6e4;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  cursor: pointer;
+  pointer-events: none !important;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  box-shadow: 0 0 24px rgba(45, 212, 191, 0.25),
+    inset 0 0 14px rgba(45, 212, 191, 0.12);
+  transition: transform 0.12s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+#game-root .ng-pad.is-down {
+  transform: scale(0.88);
+}
+#game-root .ng-boost-btn.is-down {
+  box-shadow: 0 0 36px rgba(45, 212, 191, 0.6),
+    inset 0 0 20px rgba(45, 212, 191, 0.32);
+}
+#game-root .ng-brake-btn {
+  border-color: rgba(251, 113, 133, 0.55);
+  color: #fda4af;
+  box-shadow: 0 0 22px rgba(251, 113, 133, 0.22),
+    inset 0 0 14px rgba(251, 113, 133, 0.1);
+}
+#game-root .ng-brake-btn.is-down {
+  border-color: rgba(251, 113, 133, 0.9);
+  box-shadow: 0 0 34px rgba(251, 113, 133, 0.55),
+    inset 0 0 20px rgba(251, 113, 133, 0.3);
+}
+#game-root .ng-drift-btn {
+  width: 74px;
+  height: 74px;
+  border-color: rgba(251, 191, 36, 0.6);
+  color: #fcd34d;
+  box-shadow: 0 0 24px rgba(251, 191, 36, 0.26),
+    inset 0 0 14px rgba(251, 191, 36, 0.12);
+}
+#game-root .ng-drift-btn.is-down {
+  border-color: rgba(251, 191, 36, 0.95);
+  box-shadow: 0 0 38px rgba(251, 191, 36, 0.6),
+    inset 0 0 20px rgba(251, 191, 36, 0.32);
+}
+
+/* ---------- drift bank chip ---------- */
+#game-root .ng-drift-chip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 52px);
+  transform: translateX(-50%);
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 16px 7px;
+  border-radius: 999px;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+#game-root .ng-drift-chip.on {
+  opacity: 1;
+}
+#game-root .ng-drift-tag {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.3em;
+  color: rgba(252, 211, 77, 0.75);
+}
+#game-root .ng-drift-val {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fcd34d;
+  text-shadow: 0 0 14px rgba(251, 191, 36, 0.55);
+}
+#game-root .ng-drift-chip.hot {
+  border-color: rgba(251, 191, 36, 0.45);
+  animation: ng-drift-pulse 0.9s ease-in-out infinite;
+}
+@keyframes ng-drift-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 14px rgba(251, 191, 36, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 26px rgba(251, 191, 36, 0.45);
+  }
+}
+
+/* ---------- combo popup (top-center) ---------- */
+#game-root .ng-combo-pop {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 14px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+#game-root .ng-combo-pop.on {
+  opacity: 1;
+}
+#game-root .ng-combo-label {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.34em;
+  color: rgba(244, 114, 182, 0.8);
+}
+#game-root .ng-combo-num {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: clamp(20px, 3.4vw, 26px);
+  font-weight: 800;
+  line-height: 1;
+  color: #f9a8d4;
+  text-shadow: 0 0 20px rgba(244, 114, 182, 0.65);
+}
+#game-root .ng-combo-bar {
+  display: block;
+  width: 76px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(148, 180, 214, 0.16);
+  overflow: hidden;
+}
+#game-root .ng-combo-bar b {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #f472b6, #fbbf24);
+  transform-origin: left center;
+  transform: scaleX(1);
+}
+
+/* ---------- HUD show/hide by game mode ---------- */
+#game-root .ng-score-panel,
+#game-root .ng-speed-panel,
+#game-root .ng-boost-wrap,
+#game-root .ng-pause-btn {
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none !important;
+}
+#game-root[data-mode="playing"] .ng-score-panel,
+#game-root[data-mode="playing"] .ng-speed-panel,
+#game-root[data-mode="playing"] .ng-boost-wrap,
+#game-root[data-mode="playing"] .ng-pause-btn,
+#game-root[data-mode="playing"] .ng-pads,
+#game-root[data-mode="paused"] .ng-score-panel,
+#game-root[data-mode="paused"] .ng-speed-panel,
+#game-root[data-mode="paused"] .ng-pause-btn,
+#game-root[data-mode="dying"] .ng-score-panel,
+#game-root[data-mode="dying"] .ng-speed-panel,
+#game-root[data-mode="over"] .ng-score-panel,
+#game-root[data-mode="over"] .ng-speed-panel {
+  opacity: 1;
+}
+#game-root[data-mode="playing"] .ng-pad,
+#game-root[data-mode="playing"] .ng-pause-btn {
+  pointer-events: auto !important;
+}
+
+/* ---------- full screens (menu / over / paused) ---------- */
+#game-root .ng-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: radial-gradient(
+    90% 70% at 50% 42%,
+    rgba(5, 9, 16, 0.34),
+    rgba(3, 6, 11, 0.62)
+  );
+  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+#game-root[data-mode="menu"] .ng-menu,
+#game-root[data-mode="over"] .ng-over,
+#game-root[data-mode="paused"] .ng-paused {
+  opacity: 1;
+  pointer-events: auto;
+}
+#game-root .ng-menu-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  text-align: center;
+  max-width: 520px;
+  animation: ng-rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes ng-rise {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+#game-root .ng-kicker {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.42em;
+  color: #5eead4;
+  text-shadow: 0 0 14px rgba(45, 212, 191, 0.6);
+}
+#game-root .ng-crash-kicker {
+  color: #fb7185;
+  text-shadow: 0 0 14px rgba(251, 113, 133, 0.6);
+}
+#game-root .ng-title {
+  font-size: clamp(52px, 11vw, 96px);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+  background: linear-gradient(102deg, #99f6e4 0%, #2dd4bf 38%, #f472b6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 26px rgba(45, 212, 191, 0.35));
+  animation: ng-breathe 3.2s ease-in-out infinite;
+}
+@keyframes ng-breathe {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 20px rgba(45, 212, 191, 0.28));
+  }
+  50% {
+    filter: drop-shadow(0 0 34px rgba(45, 212, 191, 0.5));
+  }
+}
+#game-root .ng-tag {
+  font-size: clamp(13px, 2.2vw, 15px);
+  color: rgba(190, 212, 233, 0.78);
+}
+#game-root .ng-best-chip {
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: rgba(190, 212, 233, 0.8);
+}
+#game-root .ng-best-chip b {
+  color: #99f6e4;
+  margin-left: 6px;
+  font-size: 13px;
+}
+#game-root .ng-play-btn {
+  position: relative;
+  margin-top: 6px;
+  padding: 15px 54px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.28em;
+  color: #04120f;
+  background: linear-gradient(100deg, #5eead4, #2dd4bf);
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 0 30px rgba(45, 212, 191, 0.4),
+    0 10px 30px rgba(0, 0, 0, 0.4);
+  transition: transform 0.16s ease, box-shadow 0.2s ease;
+}
+#game-root .ng-play-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 0 44px rgba(45, 212, 191, 0.65),
+    0 14px 34px rgba(0, 0, 0, 0.45);
+}
+#game-root .ng-play-btn:active {
+  transform: scale(0.96);
+}
+#game-root .ng-play-btn:focus-visible {
+  outline: 2px solid #99f6e4;
+  outline-offset: 3px;
+}
+#game-root .ng-play-btn::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  border: 1px solid rgba(94, 234, 212, 0.4);
+  animation: ng-ping 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  pointer-events: none;
+}
+@keyframes ng-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  70%,
+  100% {
+    transform: scale(1.14);
+    opacity: 0;
+  }
+}
+#game-root .ng-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 18px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: rgba(160, 186, 212, 0.75);
+}
+#game-root .ng-ctl {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+#game-root kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+  border-radius: 7px;
+  border: 1px solid rgba(148, 180, 214, 0.3);
+  border-bottom-width: 2px;
+  background: rgba(16, 25, 43, 0.8);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: #c9dff2;
+}
+#game-root .ng-touch-hint {
+  display: none;
+}
+
+/* ---------- game over ---------- */
+#game-root .ng-over-title {
+  font-size: clamp(38px, 7vw, 58px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #f8fafc;
+  text-shadow: 0 0 30px rgba(251, 113, 133, 0.35);
+}
+#game-root .ng-final-score {
+  font-size: clamp(44px, 9vw, 72px);
+  font-weight: 800;
+  line-height: 1;
+  color: #99f6e4;
+  text-shadow: 0 0 34px rgba(45, 212, 191, 0.55);
+}
+#game-root .ng-newbest {
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.3em;
+  color: #0b1210;
+  background: linear-gradient(100deg, #fbbf24, #fde68a);
+  box-shadow: 0 0 24px rgba(251, 191, 36, 0.5);
+  animation: ng-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes ng-pop {
+  from {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+#game-root .ng-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(86px, 1fr));
+  gap: 10px;
+  width: 100%;
+}
+#game-root .ng-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 8px;
+  border-radius: 14px;
+}
+#game-root .ng-stat span {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: rgba(148, 180, 214, 0.7);
+}
+#game-root .ng-stat b {
+  font-size: 16px;
+  font-weight: 700;
+  color: #e9fbf7;
+}
+#game-root .ng-hint {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: rgba(148, 180, 214, 0.55);
+}
+#game-root .ng-resume-btn {
+  margin-top: 10px;
+}
+
+/* ---------- responsive: phone portrait ---------- */
+@media (max-width: 640px) {
+  #game-root .ng-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+  }
+  #game-root .ng-stat {
+    padding: 9px 4px;
+    border-radius: 11px;
+  }
+  #game-root .ng-stat b {
+    font-size: 13px;
+  }
+  #game-root .ng-stat span {
+    font-size: 7.5px;
+    letter-spacing: 0.12em;
+  }
+  #game-root .ng-ctl {
+    display: none;
+  }
+  #game-root .ng-touch-hint {
+    display: inline-flex;
+    color: rgba(160, 186, 212, 0.75);
+  }
+  #game-root .ng-boost-wrap {
+    width: min(44vw, 220px);
+    left: 50%;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+    transform: translateX(-50%);
+    align-items: center;
+  }
+  #game-root .ng-drift-chip {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 54px);
+    padding: 5px 13px 6px;
+  }
+  #game-root .ng-score-panel {
+    min-width: 104px;
+    padding: 8px 12px 10px;
+  }
+  #game-root .ng-speed-panel {
+    min-width: 92px;
+    padding: 7px 11px 9px;
+  }
+  #game-root .ng-combo-pop {
+    top: calc(env(safe-area-inset-top, 0px) + 10px);
+  }
+  #game-root .ng-combo-num {
+    font-size: 19px;
+  }
+  #game-root .ng-combo-bar {
+    width: 60px;
+  }
+}
+
+/* ---------- responsive: phone landscape (short screens) ---------- */
+@media (max-height: 500px) and (orientation: landscape) {
+  #game-root .ng-title {
+    font-size: clamp(34px, 13vh, 58px);
+  }
+  #game-root .ng-menu-inner {
+    gap: 10px;
+  }
+  #game-root .ng-play-btn {
+    padding: 11px 44px;
+    font-size: 13px;
+  }
+  #game-root .ng-ctl {
+    display: none;
+  }
+  #game-root .ng-touch-hint {
+    display: inline-flex;
+  }
+  #game-root .ng-score-panel {
+    top: calc(env(safe-area-inset-top, 0px) + 8px);
+    left: calc(env(safe-area-inset-left, 0px) + 10px);
+    min-width: 92px;
+    padding: 6px 10px 8px;
+  }
+  #game-root .ng-score {
+    font-size: 20px;
+  }
+  #game-root .ng-right-col {
+    top: calc(env(safe-area-inset-top, 0px) + 8px);
+    right: calc(env(safe-area-inset-right, 0px) + 10px);
+    gap: 6px;
+  }
+  #game-root .ng-speed-panel {
+    min-width: 84px;
+    padding: 5px 9px 7px;
+  }
+  #game-root .ng-speed {
+    font-size: 17px;
+  }
+  #game-root .ng-icon-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+  }
+  #game-root .ng-boost-wrap {
+    width: min(30vw, 200px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+  }
+  #game-root .ng-drift-chip {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 44px);
+  }
+  #game-root .ng-pads {
+    right: calc(env(safe-area-inset-right, 0px) + 10px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+    gap: 8px;
+  }
+  #game-root .ng-pad {
+    width: 54px;
+    height: 54px;
+    font-size: 7px;
+  }
+  #game-root .ng-drift-btn {
+    width: 60px;
+    height: 60px;
+  }
+  #game-root .ng-combo-pop {
+    top: calc(env(safe-area-inset-top, 0px) + 6px);
+  }
+  #game-root .ng-combo-num {
+    font-size: 17px;
+  }
+  #game-root .ng-stats {
+    gap: 6px;
+  }
+  #game-root .ng-stat {
+    padding: 7px 4px;
+  }
+  #game-root .ng-final-score {
+    font-size: clamp(30px, 12vh, 44px);
+  }
+  #game-root .ng-over-title {
+    font-size: clamp(26px, 10vh, 38px);
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  #game-root .ng-ctl kbd {
+    opacity: 0.9;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #game-root .ng-title,
+  #game-root .ng-play-btn::after,
+  #game-root .ng-drift-chip.hot {
+    animation: none;
+  }
+}
